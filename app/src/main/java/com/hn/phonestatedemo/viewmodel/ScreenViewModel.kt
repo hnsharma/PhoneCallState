@@ -17,13 +17,22 @@ class ScreenViewModel:ViewModel() {
     var isRefreshing by mutableStateOf(false)
 
     init {
-        refresh()
+        //refresh()
     }
 
-    fun refresh() {
+    /*fun refresh() {
         isRefreshing = true
         viewModelScope.launch {
             list = getCallData()
+            mutableList.addAll(0, list)
+            isRefreshing = false
+        }
+    }*/
+
+    fun refresh(userListData: List<CallLogInfo> ) {
+        isRefreshing = true
+        viewModelScope.launch {
+            list =userListData
             mutableList.addAll(0, list)
             isRefreshing = false
         }

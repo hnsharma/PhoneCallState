@@ -1,9 +1,15 @@
 package com.hn.phonestatedemo
 
 import android.Manifest
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.IBinder
 import android.provider.CallLog
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -21,9 +27,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.FirebaseApp
 import com.hn.phonestatedemo.application.AppApplication
 import com.hn.phonestatedemo.receiver.CallLogInfo
 import com.hn.phonestatedemo.receiver.CallLogUtils
+import com.hn.phonestatedemo.service.ForegroundService
 import com.hn.phonestatedemo.ui.theme.PhoneStateDemoTheme
 import com.hn.phonestatedemo.utils.Utils
 import com.hn.phonestatedemo.viewmodel.ScreenViewModel
@@ -33,8 +41,12 @@ import java.util.*
 
 class MainActivity : ComponentActivity() {
     lateinit var screenViewModel : ScreenViewModel
+    // Variable for storing instance of our service class
+    var mService: ForegroundService? = null
+    var mIsBound: Boolean? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(this)
         CallLogUtils.context  = this;
         setContent {
             PhoneStateDemoTheme {
@@ -45,13 +57,14 @@ class MainActivity : ComponentActivity() {
                 ) {
                     screenViewModel= viewModel()
                     (application as AppApplication).screenViewModel = screenViewModel;
-                    callList(screenViewModel,screenViewModel.refresh())
+                    callList(screenViewModel,screenViewModel.refresh(screenViewModel.list))
                 }
             }
         }
     }
     override fun onStart() {
         super.onStart()
+        bindService()
         val phoneReadStatePermission = applicationContext.checkSelfPermission("READ_PHONE_STATE")
         val readCallLogPermission = applicationContext.checkSelfPermission("READ_CALL_LOG")
         val hasPhoneReadStatePermission =
@@ -67,6 +80,57 @@ class MainActivity : ComponentActivity() {
             )
         }
     }
+
+    /**
+     * Interface for getting the instance of binder from our service class
+     * So client can get instance of our service class and can directly communicate with it.
+     */
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, iBinder: IBinder) {
+            Log.d("Tag", "ServiceConnection: connected to service.")
+            // We've bound to MyService, cast the IBinder and get MyBinder instance
+            val binder = iBinder as ForegroundService.MyBinder
+            mService = binder.service
+            mIsBound = true
+            changeCallLog() // return a random number from the service
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            Log.d("Tag", "ServiceConnection: disconnected from service.")
+            mIsBound = false
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unbindService()
+    }
+
+    private fun changeCallLog() {
+        mService?.userCallLog?.observe(this, androidx.lifecycle.Observer {
+            screenViewModel.refresh(it)
+        })
+    }
+
+
+    /**
+     * Used to bind to our service class
+     */
+    private fun bindService() {
+        Intent(this, ForegroundService::class.java).also { intent ->
+            bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+        }
+    }
+
+    /**
+     * Used to unbind and stop our service class
+     */
+    private fun unbindService() {
+        Intent(this, ForegroundService::class.java).also { intent ->
+            unbindService(serviceConnection)
+        }
+    }
+
 }
 
 @Composable

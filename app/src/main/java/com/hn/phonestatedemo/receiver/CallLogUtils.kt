@@ -18,7 +18,7 @@ class CallLogUtils private constructor(private val context: Context) {
         phoneList!!.add(PhoneNumber("8290420991")) // Add mobile number
     }
     @SuppressLint("Range")
-     fun loadData() {
+     fun loadData():CallLogInfo? {
 
         val projection = arrayOf(
             "_id",
@@ -38,15 +38,16 @@ class CallLogUtils private constructor(private val context: Context) {
         )
         if (cursor == null) {
             Log.d("CALLLOG", "cursor is null")
-            return
+            return null
         }
         if (cursor.count == 0) {
             Log.d("CALLLOG", "cursor size is 0")
-            return
+            return null
         }
+        var callLogInfo:CallLogInfo? = null
         cursor.moveToFirst()
         while (!cursor.isAfterLast) {
-            val callLogInfo = CallLogInfo(cursor.getString(cursor.getColumnIndex(CallLog.Calls.CACHED_NAME)),
+             callLogInfo = CallLogInfo(cursor.getString(cursor.getColumnIndex(CallLog.Calls.CACHED_NAME)),
             cursor.getString(cursor.getColumnIndex(CallLog.Calls.NUMBER)),
             cursor.getString(cursor.getColumnIndex(CallLog.Calls.TYPE)),
             cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DATE)),
@@ -65,6 +66,7 @@ class CallLogUtils private constructor(private val context: Context) {
             //cursor.moveToNext()
         }
         cursor.close()
+        return callLogInfo;
     }
 
     fun readCallLogs(): ArrayList<CallLogInfo>? {
