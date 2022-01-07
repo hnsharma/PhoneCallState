@@ -1,12 +1,8 @@
 package com.hn.phonestatedemo.service
 
-import android.R
 import android.app.*
-import android.content.Context
 import android.content.Intent
 import android.os.Binder
-import android.os.Build
-import android.os.Handler
 import android.os.IBinder
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
@@ -15,7 +11,6 @@ import com.hn.phonestatedemo.receiver.CallLogInfo
 import com.hn.phonestatedemo.receiver.CallLogUtils
 import com.hn.phonestatedemo.utils.FirebaseUtil
 import java.util.*
-import javax.annotation.Nullable
 
 
 class ForegroundService : Service() {
@@ -64,22 +59,22 @@ class ForegroundService : Service() {
         CallLogUtils.context  = baseContext
         Log.d("MyBoundService", "onCreate called")
         FirebaseApp.initializeApp(this)
-        userCallLog.postValue(FirebaseUtil.getCallLog())
+        FirebaseUtil.getCallLog(userCallLog)
 
     }
 
     override fun  onStartCommand(intent: Intent, flags : Int, startId: Int):Int {
 
+        //FirebaseUtil.addUserInfoLogTest()
         val callLog  = CallLogUtils.getInstance()!!.loadData();
         if(callLog != null) {
             println("data found")
-            FirebaseUtil.addUserInfoLog(callLog)
+            FirebaseUtil.addUserInfoLog(callLog,userCallLog)
         }
         else
         {
             println("data null")
         }
-        userCallLog.postValue(FirebaseUtil.getCallLog())
         return START_NOT_STICKY;
 
     }

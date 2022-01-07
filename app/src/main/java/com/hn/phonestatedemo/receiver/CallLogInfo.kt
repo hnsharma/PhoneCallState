@@ -9,12 +9,15 @@ data class CallLogInfo(var name: String?,
                        var callType: String?,
                        var date: Long?,
                        var duration: Long?,) {
+    constructor() : this(null,null,null,null,null) {
+
+    }
 
     override fun equals(o: Any?): Boolean {
         if (this === o) return true
         if (o == null || javaClass != o.javaClass) return false
         val that = o as CallLogInfo
-        return date == that.date && duration == that.duration && name == that.name &&PhoneNumberUtils.compare(number,that.number)  && callType == that.callType
+        return date == that.date && duration == that.duration && name == that.name &&PhoneNumberUtils.compare(number,that.number,)  && callType == that.callType
     }
 
     override fun hashCode(): Int {

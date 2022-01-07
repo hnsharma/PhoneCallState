@@ -33,6 +33,7 @@ import com.hn.phonestatedemo.receiver.CallLogInfo
 import com.hn.phonestatedemo.receiver.CallLogUtils
 import com.hn.phonestatedemo.service.ForegroundService
 import com.hn.phonestatedemo.ui.theme.PhoneStateDemoTheme
+import com.hn.phonestatedemo.utils.FirebaseUtil
 import com.hn.phonestatedemo.utils.Utils
 import com.hn.phonestatedemo.viewmodel.ScreenViewModel
 import java.text.SimpleDateFormat
@@ -61,6 +62,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+       // FirebaseUtil.addUserInfoLogTest()
     }
     override fun onStart() {
         super.onStart()

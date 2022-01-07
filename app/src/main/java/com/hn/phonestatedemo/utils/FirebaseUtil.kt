@@ -15,13 +15,12 @@
  */
 package com.hn.phonestatedemo.utils
 
+import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.tasks.OnCanceledListener
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.BuildConfig
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
 import com.hn.phonestatedemo.receiver.CallLogInfo
 
 
@@ -59,57 +58,76 @@ object FirebaseUtil {
 
 
 
-    fun addUserInfoLog(userLogInfo : CallLogInfo) {
-        val mSnapshots : Task<QuerySnapshot> = firestore!!.collection(collectionPath).get();
-        if (mSnapshots.isSuccessful()) {
+    fun addUserInfoLog(userLogInfo: CallLogInfo, userCallLog: MutableLiveData<List<CallLogInfo>>) {
+        var callLog = mapOf("name" to userLogInfo.name,"number" to userLogInfo.number,"callType" to userLogInfo.callType,"duration" to userLogInfo.duration,"date" to userLogInfo.date);
+
+        firestore!!.collection(collectionPath).get().addOnCompleteListener(OnCompleteListener {
             var found = true
-            var callLog = mapOf("name" to userLogInfo.name,"number" to userLogInfo.number,"callType" to userLogInfo.callType,"duration" to userLogInfo.duration,"date" to userLogInfo.date);
-            for (document in mSnapshots.getResult()!!) {
-                found = false
-               val  userLogInfoSave = document.toObject(CallLogInfo::class.java)
+            if (it.isSuccessful()) {
 
+                var count = 0
+                for (document in it.getResult()!!) {
 
-                if(!userLogInfo.equals(userLogInfoSave))
-                {
-                    firestore!!.collection(collectionPath).add(callLog).addOnCompleteListener(
-                        OnCompleteListener {
-                            println("added")
-                        }).addOnFailureListener(OnFailureListener {
-                        it.printStackTrace()
-                    }).addOnCanceledListener(OnCanceledListener {
-                        println("cancel")
-                    })
+                    val  userLogInfoSave = document.toObject(CallLogInfo::class.java)
+                    count++;
+                    if(userLogInfo.equals(userLogInfoSave))
+                    {
+                        found = false
+                    }
+                    if(count >=4)
+                    break
                 }
-                break
+
+
             }
+
             if(found)
             {
                 firestore!!.collection(collectionPath).add(callLog).addOnCompleteListener(
                     OnCompleteListener {
+                        getCallLog(userCallLog)
                         println("added")
                     }).addOnFailureListener(OnFailureListener {
-                        it.printStackTrace()
+                    it.printStackTrace()
                 }).addOnCanceledListener(OnCanceledListener {
                     println("cancel")
                 })
             }
 
-        }
+        })
+
+
 
 
     }
 
-    fun getCallLog(): ArrayList<CallLogInfo>? {
-        val callLIst  = ArrayList<CallLogInfo>()
-        val mSnapshots : Task<QuerySnapshot> = firestore!!.collection(collectionPath).get();
-        if (mSnapshots.isSuccessful()) {
-            for (document in mSnapshots.getResult()!!) {
-                val  userLogInfoSave = document.toObject(CallLogInfo::class.java)
-                callLIst.add(userLogInfoSave)
-            }
-        }
-        println("log size "+callLIst.size)
+    fun addUserInfoLogTest() {
+            var callLog = mapOf("name" to "Hari","number" to "8290420991");
+        firestore!!.collection(collectionPath).add(callLog).addOnCompleteListener(
+            OnCompleteListener {
+                println("added")
+            }).addOnFailureListener(OnFailureListener {
+            it.printStackTrace()
+        }).addOnCanceledListener(OnCanceledListener {
+            println("cancel")
+        })
+    }
 
-        return callLIst;
+    fun getCallLog(userCallLog: MutableLiveData<List<CallLogInfo>>) {
+        val callLIst  = ArrayList<CallLogInfo>()
+         firestore!!.collection(collectionPath).get().addOnCompleteListener(
+            OnCompleteListener {
+                if(it.isSuccessful) {
+                    for (document in it.getResult()!!) {
+                        val userLogInfoSave = document.toObject(CallLogInfo::class.java)
+                        callLIst.add(userLogInfoSave)
+                    }
+                    println("log size "+callLIst.size)
+                    userCallLog.postValue(callLIst)
+                }
+            });
+
+
+
     }
 }
