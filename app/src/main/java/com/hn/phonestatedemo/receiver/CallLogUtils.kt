@@ -16,6 +16,8 @@ class CallLogUtils private constructor(private val context: Context) {
     init {
         phoneList  = ArrayList()
         phoneList!!.add(PhoneNumber("8290420991")) // Add mobile number
+        phoneList!!.add(PhoneNumber("7597715699")) // Add mobile number
+        phoneList!!.add(PhoneNumber("1234567890")) // Add mobile number
     }
     @SuppressLint("Range")
      fun loadData():CallLogInfo? {
@@ -53,20 +55,15 @@ class CallLogUtils private constructor(private val context: Context) {
             cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DATE)),
            cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DURATION)))
             if(phoneList!!.contains(PhoneNumber(callLogInfo.number))) {
-                if (mainList == null) mainList = ArrayList()
-                if (!mainList!!.contains(callLogInfo)) {
-                    println("Add contect")
-                    mainList!!.add(callLogInfo)
-                } else {
-                    println("already Added")
-                }
+                cursor.close()
+                return callLogInfo;
             }
 
             break
             //cursor.moveToNext()
         }
-        cursor.close()
-        return callLogInfo;
+
+        return null;
     }
 
     fun readCallLogs(): ArrayList<CallLogInfo>? {

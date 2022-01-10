@@ -21,6 +21,7 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.firebase.firestore.BuildConfig
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.hn.phonestatedemo.receiver.CallLogInfo
 
 
@@ -61,7 +62,7 @@ object FirebaseUtil {
     fun addUserInfoLog(userLogInfo: CallLogInfo, userCallLog: MutableLiveData<List<CallLogInfo>>) {
         var callLog = mapOf("name" to userLogInfo.name,"number" to userLogInfo.number,"callType" to userLogInfo.callType,"duration" to userLogInfo.duration,"date" to userLogInfo.date);
 
-        firestore!!.collection(collectionPath).get().addOnCompleteListener(OnCompleteListener {
+        firestore!!.collection(collectionPath).orderBy("date",Query.Direction.DESCENDING).get().addOnCompleteListener(OnCompleteListener {
             var found = true
             if (it.isSuccessful()) {
 
@@ -115,7 +116,7 @@ object FirebaseUtil {
 
     fun getCallLog(userCallLog: MutableLiveData<List<CallLogInfo>>) {
         val callLIst  = ArrayList<CallLogInfo>()
-         firestore!!.collection(collectionPath).get().addOnCompleteListener(
+         firestore!!.collection(collectionPath).orderBy("date",Query.Direction.DESCENDING).get().addOnCompleteListener(
             OnCompleteListener {
                 if(it.isSuccessful) {
                     for (document in it.getResult()!!) {
